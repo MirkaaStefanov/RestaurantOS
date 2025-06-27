@@ -7,6 +7,7 @@ import com.example.RestaurantOS.models.dto.auth.AuthenticationResponse;
 import com.example.RestaurantOS.models.dto.auth.RegisterRequest;
 import com.example.RestaurantOS.models.entity.User;
 import com.example.RestaurantOS.services.AuthenticationService;
+import com.example.RestaurantOS.services.impl.UserServiceImpl;
 import com.example.RestaurantOS.services.impl.security.events.OnPasswordResetRequestEvent;
 import com.example.RestaurantOS.services.impl.security.events.OnRegistrationCompleteEvent;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
@@ -17,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -45,6 +47,7 @@ public class AuthenticationController {
     private final AuthenticationService authenticationService;
     private final ApplicationEventPublisher eventPublisher;
     private final FrontendConfig frontendConfig;
+    private final UserServiceImpl userService;
     private final ModelMapper modelMapper;
 
     @Value("${server.backend.baseUrl}")
@@ -89,11 +92,8 @@ public class AuthenticationController {
 
     @GetMapping("/me") // Retrieves current user information.
     @RateLimiter(name = "sensitive_operations_rate_limiter")
-    public ResponseEntity<AuthenticationResponse> getMe(@RequestHeader("Authorization") String auth, HttpServletRequest request) {
-        String jwtToken = (String) request.getAttribute(JwtAuthenticationFilter.JWT_KEY);
-        AuthenticationResponse authenticationResponse = authenticationService.me(auth);
-
-        return ResponseEntity.ok(authenticationResponse);
+    public ResponseEntity<User> getMe(@RequestHeader("Authorization") String auth, HttpServletRequest request) throws ChangeSetPersister.NotFoundException {
+        return ResponseEntity.ok(userService.findMe());
     }
 
     @PostMapping("/forgot-password") // Sends link to email so the user can change their password
