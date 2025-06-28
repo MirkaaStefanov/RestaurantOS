@@ -44,5 +44,6 @@ public class Table {
     @ManyToOne
     @JoinColumn(name = "order_id")
     private Order order;
+    private User waiter;
 
 }

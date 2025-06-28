@@ -22,5 +22,5 @@ public class TableDTO {
     private int capacity;
     private TableStatus status;
     private Long currentOrderId;
-
+    private UUID waiter;
 }

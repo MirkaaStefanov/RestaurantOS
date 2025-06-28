@@ -26,5 +26,6 @@ public class OrderItemDTO {
     private int quantity;
     private String specialInstructions;
     private OrderItemStatus orderItemStatus;
+    private Long orderId;
 
 }
