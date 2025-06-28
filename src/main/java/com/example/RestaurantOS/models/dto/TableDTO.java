@@ -21,5 +21,6 @@ public class TableDTO {
     private int number;
     private int capacity;
     private TableStatus status;
-    private OrderDTO order;
+    private Long currentOrderId;
+
 }

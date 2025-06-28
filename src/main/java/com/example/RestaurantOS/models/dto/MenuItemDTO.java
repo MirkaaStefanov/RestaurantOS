@@ -27,7 +27,7 @@ public class MenuItemDTO {
     private Integer preparationTime;
     private String image;
     @JsonIgnore
-    private List<MultipartFile> imageFiles;
+    private transient List<MultipartFile> imageFiles;
 
 
 }
