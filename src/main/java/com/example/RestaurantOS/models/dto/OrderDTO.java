@@ -24,5 +24,5 @@ public class OrderDTO {
     private UUID waiterId;
     private LocalDateTime orderTime;
     private LocalDateTime estimatedReadyTime;
-    private UUID tableId;
+    private UUID table;
 }

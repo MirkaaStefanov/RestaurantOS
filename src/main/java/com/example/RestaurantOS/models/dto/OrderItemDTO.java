@@ -20,12 +20,12 @@ import lombok.NoArgsConstructor;
 public class OrderItemDTO {
 
     public Long id;
-    private Long menuItemId;
+    private Long menuItem;
     private String name;
     private double price;
     private int quantity;
     private String specialInstructions;
     private OrderItemStatus orderItemStatus;
-    private Long orderId;
+    private Long order;
 
 }
