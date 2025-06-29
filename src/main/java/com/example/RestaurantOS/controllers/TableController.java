@@ -60,9 +60,8 @@ public class TableController {
     }
 
     @PostMapping("/use/{id}")
-    public ResponseEntity<Void> getRecentOrders(@PathVariable UUID id, @RequestHeader(value = "Authorization", required = false) String auth) throws ChangeSetPersister.NotFoundException {
-        tableService.useTable(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<OrderDTO> use(@PathVariable UUID id, @RequestHeader(value = "Authorization", required = false) String auth) throws ChangeSetPersister.NotFoundException {
+        return ResponseEntity.ok(tableService.useTable(id));
     }
 
 }
