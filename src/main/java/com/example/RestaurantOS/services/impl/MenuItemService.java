@@ -6,6 +6,7 @@ import com.example.RestaurantOS.models.entity.MenuItem;
 import com.example.RestaurantOS.repositories.MenuItemRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.stereotype.Service;
 
 import java.util.Base64;
@@ -61,8 +62,8 @@ public class MenuItemService {
         repository.deleteById(id);
     }
 
-    public MenuItemDTO toggleAvailability(Long id) {
-        MenuItem item = repository.findById(id).orElseThrow();
+    public MenuItemDTO toggleAvailability(Long id) throws ChangeSetPersister.NotFoundException {
+        MenuItem item = repository.findById(id).orElseThrow(ChangeSetPersister.NotFoundException::new);
         item.setAvailable(!item.isAvailable());
         return mapper.map(repository.save(item), MenuItemDTO.class);
     }

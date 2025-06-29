@@ -44,6 +44,8 @@ public class Table {
     @ManyToOne
     @JoinColumn(name = "order_id")
     private Order order;
+    @ManyToOne
+    @JoinColumn(name = "waiter_id")
     private User waiter;
 
 }

@@ -4,6 +4,7 @@ import com.example.RestaurantOS.enums.MenuCategory;
 import com.example.RestaurantOS.models.dto.MenuItemDTO;
 import com.example.RestaurantOS.services.impl.MenuItemService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -56,7 +57,7 @@ public class MenuItemController {
     }
 
     @PatchMapping("/{id}/toggle")
-    public ResponseEntity<MenuItemDTO> toggleAvailability(@PathVariable Long id, @RequestHeader(value = "Authorization", required = false) String auth) {
+    public ResponseEntity<MenuItemDTO> toggleAvailability(@PathVariable Long id, @RequestHeader(value = "Authorization", required = false) String auth) throws ChangeSetPersister.NotFoundException {
         return ResponseEntity.ok(menuItemService.toggleAvailability(id));
     }
 }
