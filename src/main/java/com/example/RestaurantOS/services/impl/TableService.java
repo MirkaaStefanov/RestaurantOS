@@ -107,7 +107,7 @@ public class TableService {
     // --- Private Helper Method for consistent DTO mapping for Table ---
     private TableDTO convertToTableDto(Table table) {
         TableDTO dto = modelMapper.map(table, TableDTO.class);
-        dto.setCurrentOrderId(table.getOrder() != null ? table.getOrder().getId() : null);
+        dto.setCurrentOrder(table.getOrder() != null ? table.getOrder().getId() : null);
         dto.setWaiter(table.getWaiter() != null ? table.getWaiter().getId() : null);
         return dto;
     }
@@ -121,7 +121,7 @@ public class TableService {
         }
         // Manually map fields that ModelMapper might miss due to relationships, if necessary
         // For example, if OrderDTO needs table number or waiter name from related entities
-        dto.setTableId(order.getTable() != null ? order.getTable().getId() : null);
+        dto.setTable(order.getTable() != null ? order.getTable().getId() : null);
         dto.setWaiterId(order.getUser() != null ? order.getUser().getId() : null);
         // If ModelMapper is not configured to map nested collections automatically, you'd do:
         // dto.setItems(order.getItems().stream().map(item -> modelMapper.map(item, OrderItemDTO.class)).collect(Collectors.toList()));

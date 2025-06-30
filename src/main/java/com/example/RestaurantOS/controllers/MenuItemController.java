@@ -56,7 +56,7 @@ public class MenuItemController {
         return ResponseEntity.noContent().build();
     }
 
-    @PatchMapping("/{id}/toggle")
+    @PostMapping("/{id}/toggle")
     public ResponseEntity<MenuItemDTO> toggleAvailability(@PathVariable Long id, @RequestHeader(value = "Authorization", required = false) String auth) throws ChangeSetPersister.NotFoundException {
         return ResponseEntity.ok(menuItemService.toggleAvailability(id));
     }
