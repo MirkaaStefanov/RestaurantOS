@@ -90,11 +90,11 @@ public class AuthenticationController {
         return ResponseEntity.ok(authenticationResponse);
     }
 
-    @GetMapping("/me") // Retrieves current user information.
-    @RateLimiter(name = "sensitive_operations_rate_limiter")
-    public ResponseEntity<User> getMe(@RequestHeader("Authorization") String auth, HttpServletRequest request) throws ChangeSetPersister.NotFoundException {
-        return ResponseEntity.ok(userService.findMe());
-    }
+//    @GetMapping("/me") // Retrieves current user information.
+//    @RateLimiter(name = "sensitive_operations_rate_limiter")
+//    public ResponseEntity<User> getMe(@RequestHeader("Authorization") String auth, HttpServletRequest request) throws ChangeSetPersister.NotFoundException {
+//        return ResponseEntity.ok(userService.findMe());
+//    }
 
     @PostMapping("/forgot-password") // Sends link to email so the user can change their password
     @RateLimiter(name = "sensitive_operations_rate_limiter")

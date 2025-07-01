@@ -30,6 +30,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.Calendar;
@@ -156,12 +157,19 @@ public class AuthenticationServiceImpl implements AuthenticationService {
      * and returns an authentication response containing the user's information and tokens.
      */
     @Override
-    public AuthenticationResponse me(String jwtToken) {
+    public PublicUserDTO me(String jwtToken) {
         if (jwtToken == null || jwtToken.isEmpty()) {
             throw new InvalidTokenException();
         }
+        String bearerToken = jwtToken;
 
-        Token accessToken = tokenService.findByToken(jwtToken);
+        String realToken = "";
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
+            realToken = bearerToken.substring(7); // "Bearer ".length() is 7
+        }
+
+
+        Token accessToken = tokenService.findByToken(realToken);
 
         if (accessToken == null) {
             throw new InvalidTokenException();
@@ -204,14 +212,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             refreshTokenString = refreshToken.getToken();
         }
 
-        PublicUserDTO publicUser = modelMapper.map(accessToken.getUser(), PublicUserDTO.class);
+        return modelMapper.map(accessToken.getUser(), PublicUserDTO.class);
 
-        return AuthenticationResponse
-                .builder()
-                .accessToken(accessToken.getToken())
-                .refreshToken(refreshTokenString)
-                .user(publicUser)
-                .build();
     }
 
     /**

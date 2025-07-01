@@ -4,6 +4,7 @@ import com.example.RestaurantOS.filters.JwtAuthenticationFilter;
 import com.example.RestaurantOS.models.dto.auth.AdminUserDTO;
 import com.example.RestaurantOS.models.dto.auth.PublicUserDTO;
 import com.example.RestaurantOS.services.UserService;
+import com.example.RestaurantOS.services.impl.security.AuthenticationServiceImpl;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -25,6 +27,7 @@ import java.util.UUID;
 @RequestMapping("/api/v1/users")
 public class UserController {
     private final UserService userService;
+    private final AuthenticationServiceImpl authenticationService;
 
     @GetMapping("/all")
     @PreAuthorize("hasRole('ADMIN')")
@@ -52,4 +55,10 @@ public class UserController {
         userService.deleteUserById(id, user);
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/me")
+    public ResponseEntity<PublicUserDTO> getMe(@RequestHeader("Authorization") String auth){
+        return ResponseEntity.ok(authenticationService.me(auth));
+    }
+
 }

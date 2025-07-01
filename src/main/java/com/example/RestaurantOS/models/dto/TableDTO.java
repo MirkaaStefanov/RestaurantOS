@@ -1,7 +1,9 @@
 package com.example.RestaurantOS.models.dto;
 
 import com.example.RestaurantOS.enums.TableStatus;
+import com.example.RestaurantOS.models.dto.auth.PublicUserDTO;
 import com.example.RestaurantOS.models.entity.Order;
+import com.example.RestaurantOS.models.entity.User;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.JoinColumn;
@@ -21,6 +23,6 @@ public class TableDTO {
     private int number;
     private int capacity;
     private TableStatus status;
-    private Long currentOrder;
-    private UUID waiter;
+    private OrderDTO currentOrder;
+    private PublicUserDTO waiter;
 }

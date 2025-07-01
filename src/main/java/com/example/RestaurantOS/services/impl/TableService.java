@@ -4,14 +4,18 @@ import com.example.RestaurantOS.enums.TableStatus;
 import com.example.RestaurantOS.models.dto.MenuItemDTO;
 import com.example.RestaurantOS.models.dto.OrderDTO;
 import com.example.RestaurantOS.models.dto.TableDTO;
+import com.example.RestaurantOS.models.dto.auth.PublicUserDTO;
 import com.example.RestaurantOS.models.entity.Order;
 import com.example.RestaurantOS.models.entity.Table;
 import com.example.RestaurantOS.models.entity.User;
 import com.example.RestaurantOS.repositories.OrderRepository;
 import com.example.RestaurantOS.repositories.TableRepository;
+import com.example.RestaurantOS.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.crossstore.ChangeSetPersister;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +34,7 @@ public class TableService {
     private final ModelMapper modelMapper;
     private final UserServiceImpl userService;
     private final OrderRepository orderRepository;
+    private final UserRepository userRepository;
 
     public TableDTO save(TableDTO tableDTO) {
         Table table = modelMapper.map(tableDTO, Table.class);
@@ -46,7 +51,10 @@ public class TableService {
     }
 
     public List<TableDTO> getWaitersTable() throws ChangeSetPersister.NotFoundException {
-        User authenticatedUser = userService.findMe();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        User authenticatedUser = userRepository.findByEmail(email).orElseThrow(ChangeSetPersister.NotFoundException::new);
+
         List<Table> tables = tableRepository.findByWaiter(authenticatedUser);
         return tables.stream()
                 .map(table -> {
@@ -75,17 +83,19 @@ public class TableService {
     public OrderDTO useTable(UUID tableId) throws ChangeSetPersister.NotFoundException { // Method returns OrderDTO
         Table table = tableRepository.findById(tableId).orElseThrow(ChangeSetPersister.NotFoundException::new);
 
+
         // If table is already occupied and has an order, return that order's DTO.
         if (table.getStatus() == TableStatus.OCCUPIED && table.getOrder() != null) {
             System.out.println("Table " + table.getNumber() + " is already occupied with Order ID: " + table.getOrder().getId() + ". Returning existing order DTO.");
             return convertToOrderDto(table.getOrder()); // Convert existing order to DTO
         }
 
-        User waiter = userService.findMe();
+
+//        PublicUserDTO waiter = userService.findMe("token");
 
         // Create a new order
         Order newOrder = new Order();
-        newOrder.setUser(waiter);
+//        newOrder.setUser(waiter);
         newOrder.setTable(table);
         newOrder.setOrderTime(LocalDateTime.now());
         newOrder.setTotalAmount(0.0); // Initialize total amount as 0.0 (Double)
@@ -95,7 +105,7 @@ public class TableService {
 
         // Link the newly created order and waiter to the table entity
         table.setOrder(savedOrder);
-        table.setWaiter(waiter);
+//        table.setWaiter(waiter);
         table.setStatus(TableStatus.OCCUPIED);
 
         tableRepository.save(table); // Save the table to persist order and waiter linkage
@@ -104,13 +114,13 @@ public class TableService {
     }
 
 
-    // --- Private Helper Method for consistent DTO mapping for Table ---
-    private TableDTO convertToTableDto(Table table) {
-        TableDTO dto = modelMapper.map(table, TableDTO.class);
-        dto.setCurrentOrder(table.getOrder() != null ? table.getOrder().getId() : null);
-        dto.setWaiter(table.getWaiter() != null ? table.getWaiter().getId() : null);
-        return dto;
-    }
+//    // --- Private Helper Method for consistent DTO mapping for Table ---
+//    private TableDTO convertToTableDto(Table table) {
+//        TableDTO dto = modelMapper.map(table, TableDTO.class);
+//        dto.setCurrentOrder(table.getOrder() != null ? table.getOrder().getId() : null);
+//        dto.setWaiter(table.getWaiter() != null ? table.getWaiter().getId() : null);
+//        return dto;
+//    }
 
     // --- Private Helper Method for consistent DTO mapping for Order ---
     private OrderDTO convertToOrderDto(Order order) {

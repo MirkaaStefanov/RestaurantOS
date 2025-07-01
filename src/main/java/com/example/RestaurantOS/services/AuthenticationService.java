@@ -3,6 +3,7 @@ package com.example.RestaurantOS.services;
 
 import com.example.RestaurantOS.models.dto.auth.AuthenticationRequest;
 import com.example.RestaurantOS.models.dto.auth.AuthenticationResponse;
+import com.example.RestaurantOS.models.dto.auth.PublicUserDTO;
 import com.example.RestaurantOS.models.dto.auth.RegisterRequest;
 import com.example.RestaurantOS.models.entity.User;
 
@@ -15,7 +16,7 @@ public interface AuthenticationService {
 
     AuthenticationResponse refreshToken(String refreshToken) throws IOException;
 
-    AuthenticationResponse me(
+    PublicUserDTO me(
             String jwtToken
     );
 

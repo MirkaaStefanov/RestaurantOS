@@ -29,7 +29,7 @@ public class TableController {
     private final TableService tableService;
 
     @GetMapping
-    public ResponseEntity<List<TableDTO>> getAll(@RequestHeader(value = "Authorization", required = false) String auth) throws ChangeSetPersister.NotFoundException {
+    public ResponseEntity<List<TableDTO>> getAll(@RequestHeader("Authorization") String auth) throws ChangeSetPersister.NotFoundException {
         return ResponseEntity.ok(tableService.getAll());
     }
 

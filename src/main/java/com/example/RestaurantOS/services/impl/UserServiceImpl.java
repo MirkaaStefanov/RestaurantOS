@@ -7,12 +7,14 @@ import com.example.RestaurantOS.exceptions.user.UserCreateException;
 import com.example.RestaurantOS.exceptions.user.UserNotFoundException;
 import com.example.RestaurantOS.exceptions.user.UserValidationException;
 import com.example.RestaurantOS.models.dto.auth.AdminUserDTO;
+import com.example.RestaurantOS.models.dto.auth.AuthenticationResponse;
 import com.example.RestaurantOS.models.dto.auth.OAuth2UserInfoDTO;
 import com.example.RestaurantOS.models.dto.auth.PublicUserDTO;
 import com.example.RestaurantOS.models.dto.auth.RegisterRequest;
 import com.example.RestaurantOS.models.entity.User;
 import com.example.RestaurantOS.repositories.UserRepository;
 import com.example.RestaurantOS.services.UserService;
+import com.example.RestaurantOS.services.impl.security.AuthenticationServiceImpl;
 import jakarta.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -179,11 +181,11 @@ public class UserServiceImpl implements UserService {
         return userBuilder.build();
     }
 
-    public User findMe() throws ChangeSetPersister.NotFoundException {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
-        return userRepository.findByEmail(email).orElseThrow(ChangeSetPersister.NotFoundException::new);
-    }
+//    public PublicUserDTO findMe(String token) throws ChangeSetPersister.NotFoundException {
+//        AuthenticationResponse authenticationResponse = authenticationService.me(token);
+//        PublicUserDTO user = authenticationResponse.getUser();
+//        return user;
+//    }
 
 }
 
