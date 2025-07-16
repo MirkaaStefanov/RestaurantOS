@@ -1,5 +1,6 @@
 package com.example.RestaurantOS.services.impl;
 
+import com.example.RestaurantOS.enums.Role;
 import com.example.RestaurantOS.enums.TableStatus;
 import com.example.RestaurantOS.models.dto.MenuItemDTO;
 import com.example.RestaurantOS.models.dto.OrderDTO;
@@ -80,62 +81,43 @@ public class TableService {
     }
 
     @Transactional
-    public OrderDTO useTable(UUID tableId) throws ChangeSetPersister.NotFoundException { // Method returns OrderDTO
+    public OrderDTO useTable(UUID tableId) throws ChangeSetPersister.NotFoundException {
         Table table = tableRepository.findById(tableId).orElseThrow(ChangeSetPersister.NotFoundException::new);
 
-
-        // If table is already occupied and has an order, return that order's DTO.
         if (table.getStatus() == TableStatus.OCCUPIED && table.getOrder() != null) {
             System.out.println("Table " + table.getNumber() + " is already occupied with Order ID: " + table.getOrder().getId() + ". Returning existing order DTO.");
-            return convertToOrderDto(table.getOrder()); // Convert existing order to DTO
+            return modelMapper.map(table.getOrder(), OrderDTO.class);
         }
 
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        User authenticatedUser = userRepository.findByEmail(email).orElseThrow(ChangeSetPersister.NotFoundException::new);
 
-//        PublicUserDTO waiter = userService.findMe("token");
+        if (!authenticatedUser.getRole().equals(Role.WAITER)) {
+            throw new RuntimeException("The user is not waiter");
+        }
 
-        // Create a new order
         Order newOrder = new Order();
-//        newOrder.setUser(waiter);
+        newOrder.setUser(authenticatedUser);
         newOrder.setTable(table);
         newOrder.setOrderTime(LocalDateTime.now());
-        newOrder.setTotalAmount(0.0); // Initialize total amount as 0.0 (Double)
-        newOrder.setItems(new ArrayList<>()); // CRITICAL FIX: Initialize items as an empty ArrayList
+        newOrder.setTotalAmount(0.0);
+        newOrder.setItems(new ArrayList<>());
 
         Order savedOrder = orderRepository.save(newOrder);
 
-        // Link the newly created order and waiter to the table entity
         table.setOrder(savedOrder);
-//        table.setWaiter(waiter);
+        table.setWaiter(authenticatedUser);
         table.setStatus(TableStatus.OCCUPIED);
 
-        tableRepository.save(table); // Save the table to persist order and waiter linkage
+        tableRepository.save(table);
 
-        return convertToOrderDto(savedOrder); // Convert new order to DTO and return
+        return modelMapper.map(savedOrder, OrderDTO.class);
     }
 
-
-//    // --- Private Helper Method for consistent DTO mapping for Table ---
-//    private TableDTO convertToTableDto(Table table) {
-//        TableDTO dto = modelMapper.map(table, TableDTO.class);
-//        dto.setCurrentOrder(table.getOrder() != null ? table.getOrder().getId() : null);
-//        dto.setWaiter(table.getWaiter() != null ? table.getWaiter().getId() : null);
-//        return dto;
-//    }
-
-    // --- Private Helper Method for consistent DTO mapping for Order ---
-    private OrderDTO convertToOrderDto(Order order) {
-        OrderDTO dto = modelMapper.map(order, OrderDTO.class);
-        // ModelMapper typically handles null collections, but this explicitly ensures it's an ArrayList
-        if (dto.getItems() == null) {
-            dto.setItems(new ArrayList<>());
-        }
-        // Manually map fields that ModelMapper might miss due to relationships, if necessary
-        // For example, if OrderDTO needs table number or waiter name from related entities
-        dto.setTable(order.getTable() != null ? order.getTable().getId() : null);
-        dto.setWaiterId(order.getUser() != null ? order.getUser().getId() : null);
-        // If ModelMapper is not configured to map nested collections automatically, you'd do:
-        // dto.setItems(order.getItems().stream().map(item -> modelMapper.map(item, OrderItemDTO.class)).collect(Collectors.toList()));
-        return dto;
+    public OrderDTO getOrderForTable(UUID tableId) throws ChangeSetPersister.NotFoundException {
+        Table table = tableRepository.findById(tableId).orElseThrow(ChangeSetPersister.NotFoundException::new);
+        return modelMapper.map(table.getOrder(), OrderDTO.class);
     }
 }
 

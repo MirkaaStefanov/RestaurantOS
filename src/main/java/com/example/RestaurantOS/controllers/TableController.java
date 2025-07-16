@@ -64,5 +64,10 @@ public class TableController {
         return ResponseEntity.ok(tableService.useTable(id));
     }
 
+    @GetMapping("/order/{id}")
+    public ResponseEntity<OrderDTO> getOrderForTable(@PathVariable UUID id, @RequestHeader(value = "Authorization", required = false) String auth) throws ChangeSetPersister.NotFoundException {
+        return ResponseEntity.ok(tableService.getOrderForTable(id));
+    }
+
 }
 
