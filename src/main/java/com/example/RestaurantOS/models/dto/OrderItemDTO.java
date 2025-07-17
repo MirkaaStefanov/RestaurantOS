@@ -3,6 +3,7 @@ package com.example.RestaurantOS.models.dto;
 import com.example.RestaurantOS.enums.OrderItemStatus;
 import com.example.RestaurantOS.models.entity.MenuItem;
 import com.example.RestaurantOS.models.entity.Order;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
@@ -20,12 +21,16 @@ import lombok.NoArgsConstructor;
 public class OrderItemDTO {
 
     public Long id;
-    private Long menuItem;
+    private MenuItemDTO menuItem;
+    @JsonIgnore
+    private Long menuItemId;
     private String name;
     private double price;
     private int quantity;
     private String specialInstructions;
     private OrderItemStatus orderItemStatus;
-    private Long order;
+    private OrderDTO order;
+    @JsonIgnore
+    private Long orderId;
 
 }

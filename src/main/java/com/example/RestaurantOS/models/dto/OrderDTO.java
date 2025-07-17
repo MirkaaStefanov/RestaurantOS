@@ -1,5 +1,6 @@
 package com.example.RestaurantOS.models.dto;
 
+import com.example.RestaurantOS.models.dto.auth.PublicUserDTO;
 import com.example.RestaurantOS.models.entity.OrderItem;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.FetchType;
@@ -21,8 +22,8 @@ public class OrderDTO {
     public Long id;
     private List<OrderItemDTO> items;
     private double totalAmount;
-    private UUID waiterId;
+    private PublicUserDTO user;
     private LocalDateTime orderTime;
     private LocalDateTime estimatedReadyTime;
-    private UUID table;
+    private TableDTO table;
 }

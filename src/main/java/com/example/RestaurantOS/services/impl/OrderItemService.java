@@ -34,9 +34,9 @@ public class OrderItemService {
     public OrderItemDTO save(OrderItemDTO orderItemDTO) throws ChangeSetPersister.NotFoundException {
         OrderItem orderItem = modelMapper.map(orderItemDTO, OrderItem.class);
         orderItem.setOrderItemStatus(OrderItemStatus.WAITING);
-        MenuItem menuItem = menuItemRepository.findById(orderItemDTO.getMenuItem()).orElseThrow(ChangeSetPersister.NotFoundException::new);
+        MenuItem menuItem = menuItemRepository.findById(orderItemDTO.getMenuItemId()).orElseThrow(ChangeSetPersister.NotFoundException::new);
         orderItem.setMenuItem(menuItem);
-        Order order = orderRepository.findById(orderItemDTO.getOrder()).orElseThrow(ChangeSetPersister.NotFoundException::new);
+        Order order = orderRepository.findById(orderItemDTO.getOrderId()).orElseThrow(ChangeSetPersister.NotFoundException::new);
         orderItem.setOrder(order);
         return modelMapper.map(orderItemRepository.save(orderItem), OrderItemDTO.class);
     }

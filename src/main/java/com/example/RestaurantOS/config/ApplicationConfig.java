@@ -99,46 +99,47 @@ public class ApplicationConfig {
                 .addMappings(mapper -> mapper.using(toBase64)
                         .map(MenuItem::getImageData, MenuItemDTO::setImage));
     }
-    private void configureOrderMappings(ModelMapper modelMapper) {
-        // --- Order (Model) to OrderDTO (DTO) Mappings ---
-        modelMapper.createTypeMap(Order.class, OrderDTO.class)
-                .addMappings(mapper -> {
-                    // Map User (entity) ID to waiterId (UUID in DTO)
-                    mapper.map(src -> src.getUser().getId(), OrderDTO::setWaiterId);
-                    // Map Table (entity) ID to table (UUID in DTO)
-                    mapper.map(src -> src.getTable().getId(), OrderDTO::setTable);
-                    // 'items', 'totalAmount', 'orderTime', 'estimatedReadyTime' will be mapped automatically
-                    // if OrderItem and OrderItemDTO have compatible field names.
-                });
 
-        // --- OrderDTO (DTO) to Order (Model) Mappings ---
-        modelMapper.createTypeMap(OrderDTO.class, Order.class)
-                .addMappings(mapper -> {
-                    // Convert waiterId (UUID) to User entity
-                    Converter<UUID, User> uuidToUserConverter = context -> {
-                        UUID userId = context.getSource();
-                        if (userId == null) {
-                            return null;
-                        }
-                        // Fetch the User entity from the database using the UserRepository
-                        return repository.findById(userId)
-                                .orElseThrow(() -> new UserNotFoundException());
-                    };
-                    mapper.using(uuidToUserConverter).map(OrderDTO::getWaiterId, Order::setUser);
+//    private void configureOrderMappings(ModelMapper modelMapper) {
+//        // --- Order (Model) to OrderDTO (DTO) Mappings ---
+//        modelMapper.createTypeMap(Order.class, OrderDTO.class)
+//                .addMappings(mapper -> {
+//                    // Map User (entity) ID to waiterId (UUID in DTO)
+//                    mapper.map(src -> src.getUser().getId(), OrderDTO::setWaiterId);
+//                    // Map Table (entity) ID to table (UUID in DTO)
+//                    mapper.map(src -> src.getTable().getId(), OrderDTO::setTable);
+//                    // 'items', 'totalAmount', 'orderTime', 'estimatedReadyTime' will be mapped automatically
+//                    // if OrderItem and OrderItemDTO have compatible field names.
+//                });
 
-                    // Convert table (UUID) to Table entity
-                    Converter<UUID, Table> uuidToTableConverter = context -> {
-                        UUID tableId = context.getSource();
-                        if (tableId == null) {
-                            return null;
-                        }
-                        // Fetch the Table entity from the database using the TableRepository
-                        return tableRepository.findById(tableId)
-                                .orElseThrow(() -> new RuntimeException("Table with ID " + tableId + " not found during mapping."));
-                    };
-                    mapper.using(uuidToTableConverter).map(OrderDTO::getTable, Order::setTable);
-                });
-    }
+//        // --- OrderDTO (DTO) to Order (Model) Mappings ---
+//        modelMapper.createTypeMap(OrderDTO.class, Order.class)
+//                .addMappings(mapper -> {
+//                    // Convert waiterId (UUID) to User entity
+//                    Converter<UUID, User> uuidToUserConverter = context -> {
+//                        UUID userId = context.getSource();
+//                        if (userId == null) {
+//                            return null;
+//                        }
+//                        // Fetch the User entity from the database using the UserRepository
+//                        return repository.findById(userId)
+//                                .orElseThrow(() -> new UserNotFoundException());
+//                    };
+//                    mapper.using(uuidToUserConverter).map(OrderDTO::getWaiterId, Order::setUser);
+//
+//                    // Convert table (UUID) to Table entity
+//                    Converter<UUID, Table> uuidToTableConverter = context -> {
+//                        UUID tableId = context.getSource();
+//                        if (tableId == null) {
+//                            return null;
+//                        }
+//                        // Fetch the Table entity from the database using the TableRepository
+//                        return tableRepository.findById(tableId)
+//                                .orElseThrow(() -> new RuntimeException("Table with ID " + tableId + " not found during mapping."));
+//                    };
+//                    mapper.using(uuidToTableConverter).map(OrderDTO::getTable, Order::setTable);
+//                });
+//    }
 
 
     @Bean
