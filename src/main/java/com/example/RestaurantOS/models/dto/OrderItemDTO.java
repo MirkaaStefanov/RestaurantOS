@@ -22,7 +22,6 @@ public class OrderItemDTO {
 
     public Long id;
     private MenuItemDTO menuItem;
-    @JsonIgnore
     private Long menuItemId;
     private String name;
     private double price;
@@ -30,7 +29,6 @@ public class OrderItemDTO {
     private String specialInstructions;
     private OrderItemStatus orderItemStatus;
     private OrderDTO order;
-    @JsonIgnore
     private Long orderId;
 
 }

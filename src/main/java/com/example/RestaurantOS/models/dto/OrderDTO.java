@@ -20,7 +20,6 @@ import java.util.UUID;
 @Builder
 public class OrderDTO {
     public Long id;
-    private List<OrderItemDTO> items;
     private double totalAmount;
     private PublicUserDTO user;
     private LocalDateTime orderTime;

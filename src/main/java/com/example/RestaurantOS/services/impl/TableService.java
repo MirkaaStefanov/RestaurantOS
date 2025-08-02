@@ -102,7 +102,6 @@ public class TableService {
         newOrder.setTable(table);
         newOrder.setOrderTime(LocalDateTime.now());
         newOrder.setTotalAmount(0.0);
-        newOrder.setItems(new ArrayList<>());
 
         Order savedOrder = orderRepository.save(newOrder);
 

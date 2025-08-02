@@ -39,14 +39,6 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     public Long id;
 
-    @OneToMany(
-            mappedBy = "order",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true,
-            fetch = FetchType.LAZY
-    )
-    private List<OrderItem> items;
-
     private double totalAmount;
     @ManyToOne
     @JoinColumn(name = "user_id")

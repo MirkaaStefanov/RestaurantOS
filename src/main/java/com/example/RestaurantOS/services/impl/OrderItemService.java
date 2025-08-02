@@ -36,6 +36,8 @@ public class OrderItemService {
         orderItem.setOrderItemStatus(OrderItemStatus.WAITING);
         MenuItem menuItem = menuItemRepository.findById(orderItemDTO.getMenuItemId()).orElseThrow(ChangeSetPersister.NotFoundException::new);
         orderItem.setMenuItem(menuItem);
+        orderItem.setName(menuItem.getName());
+        orderItem.setPrice(menuItem.getPrice()*orderItem.getQuantity());
         Order order = orderRepository.findById(orderItemDTO.getOrderId()).orElseThrow(ChangeSetPersister.NotFoundException::new);
         orderItem.setOrder(order);
         return modelMapper.map(orderItemRepository.save(orderItem), OrderItemDTO.class);
