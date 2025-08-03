@@ -78,8 +78,6 @@ public class AuthenticationController {
     @RateLimiter(name = "sensitive_operations_rate_limiter")
     public ResponseEntity<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest request, HttpServletResponse servletResponse) {
         AuthenticationResponse authenticationResponse = authenticationService.authenticate(request);
-        System.out.println("--- BACKEND: Entering loginUser method ---");
-        System.out.println("Login attempt for email: " + request.getEmail()+request.getPassword());
         return ResponseEntity.ok(authenticationResponse);
     }
 
