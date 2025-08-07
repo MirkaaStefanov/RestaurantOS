@@ -10,6 +10,7 @@ import com.example.RestaurantOS.models.entity.OrderItem;
 import com.example.RestaurantOS.repositories.MenuItemRepository;
 import com.example.RestaurantOS.repositories.OrderItemRepository;
 import com.example.RestaurantOS.repositories.OrderRepository;
+import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.crossstore.ChangeSetPersister;
@@ -37,7 +38,7 @@ public class OrderItemService {
         MenuItem menuItem = menuItemRepository.findById(orderItemDTO.getMenuItemId()).orElseThrow(ChangeSetPersister.NotFoundException::new);
         orderItem.setMenuItem(menuItem);
         orderItem.setName(menuItem.getName());
-        orderItem.setPrice(menuItem.getPrice()*orderItem.getQuantity());
+        orderItem.setPrice(menuItem.getPrice() * orderItem.getQuantity());
         Order order = orderRepository.findById(orderItemDTO.getOrderId()).orElseThrow(ChangeSetPersister.NotFoundException::new);
         orderItem.setOrder(order);
         return modelMapper.map(orderItemRepository.save(orderItem), OrderItemDTO.class);
@@ -81,37 +82,15 @@ public class OrderItemService {
     }
 
     @Transactional
-    public void acceptOrder(Long orderId) throws ChangeSetPersister.NotFoundException {
+    public OrderItemDTO acceptOrderItem(Long orderItemId) throws ChangeSetPersister.NotFoundException {
 
-        List<OrderItemDTO> waitingOrderItems = findAll(orderId, OrderItemStatus.WAITING);
+        OrderItem waitingOrderItem = orderItemRepository.findById(orderItemId).orElseThrow(ChangeSetPersister.NotFoundException::new);
 
-        if (waitingOrderItems.isEmpty()) {
-            System.out.println("No WAITING order items found for order ID: " + orderId + ". Nothing to accept.");
-            return;
+        if (!waitingOrderItem.getOrderItemStatus().equals(OrderItemStatus.WAITING)) {
+            throw new ValidationException("Status is already updated");
         }
-
-        for (OrderItemDTO orderItemDTO : waitingOrderItems) {
-            OrderItem orderItem = orderItemRepository.findById(orderItemDTO.getId()).orElseThrow(ChangeSetPersister.NotFoundException::new);
-            orderItem.setOrderItemStatus(OrderItemStatus.PENDING);
-            OrderItem updatedOrderItem = orderItemRepository.save(orderItem);
-
-            if (updatedOrderItem.getMenuItem() != null) {
-                MenuCategory category = updatedOrderItem.getMenuItem().getCategory();
-                OrderItemDTO dto = modelMapper.map(updatedOrderItem, OrderItemDTO.class);
-
-                if (category == MenuCategory.BEVERAGE) {
-                    simpMessagingTemplate.convertAndSend("/topic/beverage-orders", dto);
-                    System.out.println("Sent beverage order item (ID: " + dto.getId() + ") to /topic/beverage-orders");
-                } else {
-                    simpMessagingTemplate.convertAndSend("/topic/kitchen-orders", dto);
-                    System.out.println("Sent kitchen order item (ID: " + dto.getId() + ") to /topic/kitchen-orders");
-                }
-            } else {
-                // Fallback for custom items or if MenuItem is unexpectedly null
-                System.err.println("OrderItem " + updatedOrderItem.getId() + " has no linked MenuItem. Cannot determine category for WebSocket. Sending to general kitchen topic.");
-            }
-        }
-        System.out.println("All WAITING order items for order ID: " + orderId + " have been processed and sent via WebSocket.");
+        waitingOrderItem.setOrderItemStatus(OrderItemStatus.PENDING);
+        return modelMapper.map(orderItemRepository.save(waitingOrderItem), OrderItemDTO.class);
     }
 
 }

@@ -60,9 +60,8 @@ public class OrderItemController {
     }
 
     @PostMapping("/accept/{id}")
-    public ResponseEntity<Void> accept(@PathVariable Long id, @RequestHeader(value = "Authorization", required = false) String auth) throws ChangeSetPersister.NotFoundException {
-        orderItemService.acceptOrder(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<OrderItemDTO> accept(@PathVariable Long id, @RequestHeader(value = "Authorization", required = false) String auth) throws ChangeSetPersister.NotFoundException {
+        return ResponseEntity.ok(orderItemService.acceptOrderItem(id));
     }
 
 }
