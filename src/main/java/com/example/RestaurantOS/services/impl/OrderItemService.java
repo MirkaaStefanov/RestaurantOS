@@ -89,7 +89,7 @@ public class OrderItemService {
         if (!waitingOrderItem.getOrderItemStatus().equals(OrderItemStatus.WAITING)) {
             throw new ValidationException("Status is already updated");
         }
-        waitingOrderItem.setOrderItemStatus(OrderItemStatus.PENDING);
+        waitingOrderItem.setOrderItemStatus(OrderItemStatus.PREPARING);
         return modelMapper.map(orderItemRepository.save(waitingOrderItem), OrderItemDTO.class);
     }
 

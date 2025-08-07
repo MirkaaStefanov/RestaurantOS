@@ -7,7 +7,6 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum OrderItemStatus {
     WAITING,
-    PENDING,
     PREPARING,
     DONE
 
