@@ -18,6 +18,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -90,6 +91,7 @@ public class OrderItemService {
             throw new ValidationException("Status is already updated");
         }
         waitingOrderItem.setOrderItemStatus(OrderItemStatus.PREPARING);
+        waitingOrderItem.setAddedTime(LocalDateTime.now());
         return modelMapper.map(orderItemRepository.save(waitingOrderItem), OrderItemDTO.class);
     }
 
