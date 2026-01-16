@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: 8085
   frontend:
     baseUrl: ${FRONTEND_URL}
     loginUrl: ${server.frontend.baseUrl}/login
@@ -39,6 +39,7 @@ spring:
           introspection-uri: https://www.googleapis.com
           client-id: ${GOOGLE_CLIENT_ID}
           client-secret: ${GOOGLE_CLIENT_SECRET}
+          allowed-client-ids: "${GOOGLE_CLIENT_ID},${GOOGLE_ANDROID_CLIENT_ID},${GOOGLE_IOS_CLIENT_ID}"
     mail:
       host: smtp.gmail.com
       port: 465

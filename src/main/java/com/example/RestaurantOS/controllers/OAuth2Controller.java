@@ -1,11 +1,14 @@
 package com.example.RestaurantOS.controllers;
 
+import com.example.RestaurantOS.models.dto.TokenDto;
 import com.example.RestaurantOS.models.dto.auth.AuthenticationResponse;
 import com.example.RestaurantOS.services.OAuth2AuthenticationService;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,4 +30,11 @@ public class OAuth2Controller {
     public ResponseEntity<AuthenticationResponse> googleAuthenticate(@RequestParam("code") String code) {
         return ResponseEntity.ok(oAuth2AuthenticationService.processOAuthGoogleLogin(code));
     }
+
+    @PostMapping("/authenticate/google-token")
+    @RateLimiter(name = "sensitive_operations_rate_limiter")
+    public ResponseEntity<AuthenticationResponse> googleTokenAuthenticate(@RequestBody TokenDto tokenDto) {
+        return ResponseEntity.ok(oAuth2AuthenticationService.processGoogleIdToken(tokenDto.getToken()));
+    }
+
 }

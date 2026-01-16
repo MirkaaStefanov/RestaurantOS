@@ -11,14 +11,18 @@ import com.example.RestaurantOS.services.TokenService;
 import com.example.RestaurantOS.services.UserService;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeRequestUrl;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeTokenRequest;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.List;
 
 /**
@@ -39,6 +43,19 @@ public class OAuth2AuthenticationServiceImpl implements OAuth2AuthenticationServ
     private String clientId;
     @Value("${spring.security.oauth2.resourceserver.opaquetoken.client-secret}")
     private String clientSecret;
+
+    @Value("#{'${spring.security.oauth2.resourceserver.opaquetoken.allowed-client-ids}'.split(',')}")
+    private List<String> allowedClientIds;
+
+    private GoogleIdTokenVerifier verifier;
+
+    // Инициализираме верификатора веднъж при стартиране
+    @PostConstruct
+    public void init() {
+        verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new GsonFactory())
+                .setAudience(allowedClientIds) // Тук казваме: "Приемай токени само за нашите App-ове"
+                .build();
+    }
 
     @Override
     public String getOAuthGoogleLoginUrl() {
@@ -83,6 +100,64 @@ public class OAuth2AuthenticationServiceImpl implements OAuth2AuthenticationServ
                     .getAccessToken();
         } catch (IOException e) {
             throw new InvalidTokenException();
+        }
+    }
+
+    @Override
+    public AuthenticationResponse processGoogleIdToken(String idTokenString) {
+        try {
+            // 1. Валидираме токена
+            GoogleIdToken idToken = verifier.verify(idTokenString);
+
+            if (idToken != null) {
+                GoogleIdToken.Payload payload = idToken.getPayload();
+
+                // 2. Създаваме DTO-то
+                OAuth2UserInfoDTO userInfo = new OAuth2UserInfoDTO();
+
+                // Взимаме задължителните полета
+                userInfo.setEmail(payload.getEmail());
+
+                // Имената понякога са отделно, понякога в "name"
+                String name = (String) payload.get("name");
+                userInfo.setName(name);
+
+                // Опитваме да вземем по-детайлни имена ако ги има
+                if (payload.get("given_name") != null) {
+                    userInfo.setGiven_name((String) payload.get("given_name"));
+                }
+                if (payload.get("family_name") != null) {
+                    userInfo.setFamily_name((String) payload.get("family_name"));
+                }
+
+                // Взимаме снимката
+                if(payload.get("picture") != null) {
+                    userInfo.setPicture((String) payload.get("picture"));
+                }
+
+                userInfo.setProvider(Provider.GOOGLE);
+
+                // ВАЖНО: Google ID (sub) е String.
+                // Не ползвай setId() (ако BaseDTO.id е Long/Integer), ползвай setSub()
+                userInfo.setSub(payload.getSubject());
+
+                // 3. Верификация на email-a (Google токените имат този флаг)
+                if (payload.getEmailVerified()) {
+                    userInfo.setEmail_verified(true);
+                }
+
+                // 4. Използваме съществуващата логика
+                User user = userService.processOAuthUser(userInfo);
+                tokenService.revokeAllUserTokens(user);
+
+                return tokenService.generateAuthResponse(user);
+            } else {
+                // Сега вече работи, защото добавихме конструктора
+                throw new InvalidTokenException("Invalid ID token signature");
+            }
+        } catch (GeneralSecurityException | IOException e) {
+            // И това работи с новия конструктор
+            throw new InvalidTokenException("Token verification failed: " + e.getMessage());
         }
     }
 }

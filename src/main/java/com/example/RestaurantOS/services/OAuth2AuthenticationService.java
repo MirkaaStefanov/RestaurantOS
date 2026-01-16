@@ -8,4 +8,7 @@ public interface OAuth2AuthenticationService {
     String getOAuthGoogleLoginUrl();
 
     AuthenticationResponse processOAuthGoogleLogin(String code);
+
+    // НОВ МЕТОД: За Mobile & Modern Web
+    AuthenticationResponse processGoogleIdToken(String idTokenString);
 }

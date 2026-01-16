@@ -11,4 +11,7 @@ public class InvalidTokenException extends UnauthorizedException {
     public InvalidTokenException() {
         super("Невалиден токен!");
     }
+    public InvalidTokenException(String message) {
+        super(message);
+    }
 }
