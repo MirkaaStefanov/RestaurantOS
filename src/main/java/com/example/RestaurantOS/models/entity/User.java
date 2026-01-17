@@ -3,6 +3,7 @@ package com.example.RestaurantOS.models.entity;
 import com.example.RestaurantOS.enums.Provider;
 import com.example.RestaurantOS.enums.Role;
 import com.example.RestaurantOS.models.baseEntity.BaseEntity;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
@@ -11,6 +12,7 @@ import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -48,6 +50,26 @@ public class User extends BaseEntity implements UserDetails {
 
     @Column(name = "enabled")
     private boolean enabled;
+
+    // ID на текущото активно устройство (пр. "android_uuid_123")
+    private String activeDeviceId;
+
+    // Брояч колко пъти е сменян телефона този месец
+    private int deviceChangeCount;
+
+    // Дата на последно нулиране на брояча за смени
+    private LocalDate lastDeviceResetDate;
+
+    @ManyToOne
+    @JoinColumn(name = "membership_id")
+    @ToString.Exclude
+    private Membership currentMembership;
+
+    @OneToMany(mappedBy = "owner")
+    @JsonIgnore
+    @ToString.Exclude
+    private List<Membership> memberships;
+
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

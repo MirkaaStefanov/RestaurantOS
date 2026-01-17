@@ -3,6 +3,7 @@ package com.example.RestaurantOS.filters;
 
 import com.example.RestaurantOS.exceptions.user.UserNotFoundException;
 import com.example.RestaurantOS.models.dto.auth.PublicUserDTO;
+import com.example.RestaurantOS.models.entity.User;
 import com.example.RestaurantOS.repositories.TokenRepository;
 import com.example.RestaurantOS.services.JwtService;
 import com.example.RestaurantOS.services.UserService;
@@ -97,11 +98,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             if (jwtService.isTokenValid(jwt, userDetails) && isTokenValid) {
 
+                User user = userService.findByEmail(userEmail);
                 // Set user authentication in security context
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        userDetails,
+                        user,
                         null,
-                        userDetails.getAuthorities()
+                        user.getAuthorities()
                 );
 
                 authToken.setDetails(

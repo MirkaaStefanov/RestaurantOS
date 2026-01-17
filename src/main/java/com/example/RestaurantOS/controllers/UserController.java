@@ -3,13 +3,16 @@ package com.example.RestaurantOS.controllers;
 import com.example.RestaurantOS.filters.JwtAuthenticationFilter;
 import com.example.RestaurantOS.models.dto.auth.AdminUserDTO;
 import com.example.RestaurantOS.models.dto.auth.PublicUserDTO;
+import com.example.RestaurantOS.models.entity.User;
 import com.example.RestaurantOS.services.UserService;
 import com.example.RestaurantOS.services.impl.security.AuthenticationServiceImpl;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,6 +31,7 @@ import java.util.UUID;
 public class UserController {
     private final UserService userService;
     private final AuthenticationServiceImpl authenticationService;
+    private final ModelMapper modelMapper;
 
     @GetMapping("/all")
     @PreAuthorize("hasRole('ADMIN')")
@@ -59,6 +63,11 @@ public class UserController {
     @GetMapping("/me")
     public ResponseEntity<PublicUserDTO> getMe(@RequestHeader("Authorization") String auth){
         return ResponseEntity.ok(authenticationService.me(auth));
+    }
+
+    @GetMapping("/profile")
+    public ResponseEntity<PublicUserDTO> profile(@AuthenticationPrincipal User user){
+        return ResponseEntity.ok(modelMapper.map(user, PublicUserDTO.class));
     }
 
 }
