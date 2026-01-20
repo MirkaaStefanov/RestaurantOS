@@ -66,4 +66,22 @@ public class QrController {
             ));
         }
     }
+
+    @PostMapping("/invalidate")
+    public ResponseEntity<?> invalidateQr(@RequestBody Map<String, String> request) {
+        String token = request.get("qrCode");
+
+        if (token == null || token.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Липсва QR код в заявката."));
+        }
+
+        try {
+            qrService.invalidateQrToken(token);
+            return ResponseEntity.ok(Map.of("message", "QR кодът е анулиран успешно."));
+
+        } catch (IllegalArgumentException e) {
+            // Ако токенът не съществува в базата
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
 }

@@ -3,15 +3,19 @@ package com.example.RestaurantOS.services.impl;
 import com.example.RestaurantOS.models.entity.Membership;
 import com.example.RestaurantOS.models.entity.MembershipPlan;
 import com.example.RestaurantOS.models.entity.User;
+import com.example.RestaurantOS.repositories.DailyWorkoutRepository;
 import com.example.RestaurantOS.repositories.MembershipPlanRepository;
 import com.example.RestaurantOS.repositories.MembershipRepository;
 import com.example.RestaurantOS.repositories.UserRepository;
+import com.example.RestaurantOS.repositories.VisitRepository;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -24,29 +28,35 @@ public class MembershipService {
     private final MembershipRepository membershipRepository;
     private final MembershipPlanRepository planRepository;
     private final UserRepository userRepository;
+    private final DailyWorkoutRepository dailyWorkoutRepository;
 
     @Transactional
     public Membership userPlans(UUID userId) {
-        // ГРЕШКА 1: getById връща Proxy (незареден обект).
-        // Ако се опиташ да достъпиш полетата му извън транзакция, гърми.
-        // ПОПРАВКА: Използвай findById, което вади истинския обект.
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         Membership membership = user.getCurrentMembership();
 
-        // ГРЕШКА 2: Lazy Loading.
-        // Ако membership не е null, списъкът users вътре в него е Lazy.
-        // Трябва да го "събудим", докато сме още в транзакцията.
-//        if (membership != null) {
-//            Hibernate.initialize(membership.getUsers());
-//            Hibernate.initialize(membership.getOwner());
-//        }
+        if (membership != null) {
+
+            boolean strictlyValid = membership.isValid();
+
+            boolean hasWorkoutToday = dailyWorkoutRepository
+                    .findByUserAndDate(user, LocalDate.now())
+                    .isPresent();
+
+            boolean isDateValid = membership.getEndDate() == null ||
+                    !LocalDate.now().isAfter(membership.getEndDate());
+
+            if (strictlyValid || (hasWorkoutToday && isDateValid)) {
+                membership.setDailyAccessActive(true);
+            } else {
+                membership.setDailyAccessActive(false);
+            }
+        }
 
         return membership;
     }
-
-
     @Transactional
     public Membership buyMembership(UUID userId, Long planId) {
 

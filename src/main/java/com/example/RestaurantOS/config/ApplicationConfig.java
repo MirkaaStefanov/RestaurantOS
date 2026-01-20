@@ -3,14 +3,8 @@ package com.example.RestaurantOS.config;
 
 import com.example.RestaurantOS.exceptions.user.UserNotFoundException;
 import com.example.RestaurantOS.models.baseEntity.BaseEntity;
-import com.example.RestaurantOS.models.dto.MenuItemDTO;
-import com.example.RestaurantOS.models.dto.OrderDTO;
 import com.example.RestaurantOS.models.dto.common.BaseDTO;
-import com.example.RestaurantOS.models.entity.MenuItem;
-import com.example.RestaurantOS.models.entity.Order;
-import com.example.RestaurantOS.models.entity.Table;
-import com.example.RestaurantOS.models.entity.User;
-import com.example.RestaurantOS.repositories.TableRepository;
+import com.example.RestaurantOS.repositories.old.TableRepository;
 import com.example.RestaurantOS.repositories.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -21,7 +15,6 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
-import org.modelmapper.spi.MappingContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
@@ -37,9 +30,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Base64;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 /**
  * Configuration class for defining beans related to application setup, such as ModelMapper, ObjectMapper,
@@ -95,9 +85,9 @@ public class ApplicationConfig {
             return (source != null) ? Base64.getEncoder().encodeToString(source) : null;
         };
 
-        modelMapper.createTypeMap(MenuItem.class, MenuItemDTO.class)
-                .addMappings(mapper -> mapper.using(toBase64)
-                        .map(MenuItem::getImageData, MenuItemDTO::setImage));
+//        modelMapper.createTypeMap(MenuItem.class, MenuItemDTO.class)
+//                .addMappings(mapper -> mapper.using(toBase64)
+//                        .map(MenuItem::getImageData, MenuItemDTO::setImage));
     }
 
 //    private void configureOrderMappings(ModelMapper modelMapper) {

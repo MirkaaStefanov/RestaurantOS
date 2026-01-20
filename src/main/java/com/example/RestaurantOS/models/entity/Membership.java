@@ -13,6 +13,7 @@ import jakarta.persistence.PostLoad;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -61,6 +62,9 @@ public class Membership {
     private int remainingVisits; // -1 = unlimited
     @Column(name = "is_valid")
     private boolean valid;
+
+    @Transient
+    private boolean dailyAccessActive;
 
     @PostLoad
     private void checkValidityAfterLoad() {

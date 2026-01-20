@@ -74,7 +74,8 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(auth -> auth
                         // Разрешаваме достъп до статични ресурси и login/register страниците
                         .requestMatchers("/", "/login", "/register", "/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
-                        .anyRequest().authenticated()
+                                .anyRequest().permitAll()
+//                        .anyRequest().authenticated()
                 )
                 // --- Standard Form Login (Email/Pass) ---
                 .formLogin(form -> form

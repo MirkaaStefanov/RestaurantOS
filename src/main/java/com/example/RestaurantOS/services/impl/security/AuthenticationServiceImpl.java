@@ -107,15 +107,15 @@ public class AuthenticationServiceImpl implements AuthenticationService {
      * and updates the refresh token to the provided one.
      */
     @Override
-    public AuthenticationResponse refreshToken(String refreshToken) {
-        if (refreshToken == null || refreshToken.isEmpty()) {
+    public AuthenticationResponse refreshToken(String incomingRefreshToken) {
+        // 1. Първична валидация - празен ли е токенът?
+        if (incomingRefreshToken == null || incomingRefreshToken.isEmpty()) {
             throw new InvalidTokenException();
         }
 
         String userEmail;
-
         try {
-            userEmail = jwtService.extractUsername(refreshToken);
+            userEmail = jwtService.extractUsername(incomingRefreshToken);
         } catch (JwtException exception) {
             throw new InvalidTokenException();
         }
@@ -124,29 +124,48 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             throw new InvalidTokenException();
         }
 
-        // Make sure token is a refresh token not access token
-        Token token = tokenService.findByToken(refreshToken);
-        if (token != null && token.tokenType != TokenType.REFRESH) {
+        // 2. Проверка в базата данни: Този токен съществува ли и Refresh Token ли е?
+        Token storedToken = tokenService.findByToken(incomingRefreshToken);
+
+        // Ако токенът не е намерен в базата или не е от тип REFRESH -> Грешка
+        if (storedToken == null || storedToken.getTokenType() != TokenType.REFRESH) {
             throw new InvalidTokenException();
         }
 
+        // 3. Взимаме потребителя
         User user = userService.findByEmail(userEmail);
 
-        if (!jwtService.isTokenValid(refreshToken, user)) {
-            tokenService.revokeToken(token);
+        // 4. Проверяваме криптографската валидност и дали е изтекъл (expired)
+        if (!jwtService.isTokenValid(incomingRefreshToken, user)) {
+            tokenService.revokeToken(storedToken); // Маркираме го като невалиден за всеки случай
             throw new InvalidTokenException();
         }
 
-        String accessToken = jwtService.generateToken(user);
+        // 5. Проверка дали токенът вече не е revoken/expired в базата (ако имате полета revoked/expired)
+        // (Предполага се, че findByToken връща само валидни или проверката е тук)
+        if (storedToken.isRevoked() || storedToken.isExpired()) {
+            throw new InvalidTokenException();
+        }
 
+        // --- TOKEN ROTATION LOGIC (СЪЩИНАТА НА СИГУРНОСТТА) ---
+
+        // 6. Генерираме ЧИСТО НОВИ токени
+        String newAccessToken = jwtService.generateToken(user);
+        String newRefreshToken = jwtService.generateRefreshToken(user);
+
+        // 7. Revoke-ваме (анулираме) ВСИЧКИ стари токени на този потребител.
+        // Това включва и токена, който току-що бе използван за refresh.
         tokenService.revokeAllUserTokens(user);
-        tokenService.saveToken(user, accessToken, TokenType.ACCESS);
-        tokenService.saveToken(user, refreshToken, TokenType.REFRESH);
 
+        // 8. Запазваме НОВИТЕ токени в базата
+        tokenService.saveToken(user, newAccessToken, TokenType.ACCESS);
+        tokenService.saveToken(user, newRefreshToken, TokenType.REFRESH);
+
+        // 9. Връщаме новата двойка токени на Frontend-а
         return AuthenticationResponse
                 .builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
+                .accessToken(newAccessToken)
+                .refreshToken(newRefreshToken) // ВАЖНО: Връщаме новия, не стария!
                 .build();
     }
 
