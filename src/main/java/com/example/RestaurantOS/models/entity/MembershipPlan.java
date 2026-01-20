@@ -34,5 +34,7 @@ public class MembershipPlan {
     private int durationDays;      // 30, 90, 365
     private int visitLimit;        // -1 = unlimited, 1 = single, >1 = family
     private BigDecimal price;
+    private boolean family;
+    private int maxInFamily;
 
 }

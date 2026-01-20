@@ -10,10 +10,12 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -34,6 +36,29 @@ public class MembershipController {
     ) {
         Membership membership = membershipService.buyMembership(user.getId(), planId);
         return ResponseEntity.ok(membership);
+    }
+
+    @PostMapping("/family/add")
+    public ResponseEntity<?> addFamilyMember(
+            @RequestBody Map<String, String> request,
+            @AuthenticationPrincipal User user
+    ) {
+        String email = request.get("email");
+
+        if (email == null || email.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Email адресът е задължителен."));
+        }
+
+        try {
+            // Извикваме новия сървис метод
+            Membership updatedMembership = membershipService.addFamilyMember(user.getId(), email);
+
+            return ResponseEntity.ok(updatedMembership);
+
+        } catch (RuntimeException e) {
+            // Връщаме грешка (400 Bad Request) с ясно съобщение (напр. "Капацитетът е достигнат")
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 
 }

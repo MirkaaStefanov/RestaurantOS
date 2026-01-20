@@ -5,6 +5,7 @@ import com.example.RestaurantOS.models.dto.auth.AdminUserDTO;
 import com.example.RestaurantOS.models.dto.auth.PublicUserDTO;
 import com.example.RestaurantOS.models.entity.User;
 import com.example.RestaurantOS.services.UserService;
+import com.example.RestaurantOS.services.impl.UserServiceImpl;
 import com.example.RestaurantOS.services.impl.security.AuthenticationServiceImpl;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,11 +33,11 @@ public class UserController {
     private final UserService userService;
     private final AuthenticationServiceImpl authenticationService;
     private final ModelMapper modelMapper;
+    private final UserServiceImpl userServiceImpl;
 
     @GetMapping("/all")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<AdminUserDTO>> getAllUsers() {
-        return ResponseEntity.ok(userService.getAllUsers());
+    public ResponseEntity<List<PublicUserDTO>> getAllUsers() {
+        return ResponseEntity.ok(userServiceImpl.allUsers());
     }
 
     @GetMapping("/{id}/admin")

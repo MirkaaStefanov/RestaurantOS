@@ -80,6 +80,17 @@ public class UserServiceImpl implements UserService {
                 .toList();
     }
 
+
+    public List<PublicUserDTO> allUsers() {
+        return userRepository
+                .findAll()
+                .stream()
+                // Тук променяме AdminUserDTO.class на PublicUserDTO.class
+                .map(user -> modelMapper.map(user, PublicUserDTO.class))
+                .toList();
+    }
+
+
     @Override
     public AdminUserDTO updateUser(UUID id, AdminUserDTO userDTO, PublicUserDTO currentUser) {
         User userToUpdate = findById(id);
@@ -170,6 +181,7 @@ public class UserServiceImpl implements UserService {
         User.UserBuilder userBuilder = User
                 .builder()
                 .name(request.getName())
+                .surname(request.getSurName())
                 .email(request.getEmail())
                 .provider(request.getProvider())
                 .role(Role.USER);

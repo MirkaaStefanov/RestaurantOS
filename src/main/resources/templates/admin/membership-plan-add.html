@@ -1,20 +1,344 @@
-<form th:action="@{/admin/membership-plans/add}" th:object="${membershipPlan}" method="post">
-  <div>
-    <label>Name:</label>
-    <input type="text" th:field="*{name}" />
-    <span th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></span>
-  </div>
-  <div>
-    <label>Duration (days):</label>
-    <input type="number" th:field="*{durationDays}" />
-  </div>
-  <div>
-    <label>Visit Limit (-1 for unlimited):</label>
-    <input type="number" th:field="*{visitLimit}" />
-  </div>
-  <div>
-    <label>Price:</label>
-    <input type="number" step="0.01" th:field="*{price}" />
-  </div>
-  <button type="submit">Add Plan</button>
-</form>
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="bg">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Добави План - Jungle Gym</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+        --bg-color: #000000;
+        --card-bg: #1c1c1e;
+        --input-bg: #2c2c2e;
+        --text-color: #ffffff;
+        --text-secondary: #8e8e93;
+        --primary-green: #2ecc71; /* Неоново зелено */
+        --primary-purple: #8e44ad; /* Лилаво */
+        --danger: #e74c3c;
+        --radius: 12px;
+    }
+
+    body {
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        font-family: 'Inter', sans-serif;
+        margin: 0;
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+    }
+
+    .container {
+        width: 100%;
+        max-width: 500px;
+        background-color: var(--card-bg);
+        padding: 30px;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        border: 1px solid #333;
+    }
+
+    h2 {
+        text-align: center;
+        margin-bottom: 30px;
+        color: var(--primary-green);
+        font-weight: 700;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        font-weight: 600;
+    }
+
+    input[type="text"],
+    input[type="number"] {
+        width: 100%;
+        padding: 14px;
+        background-color: var(--input-bg);
+        border: 1px solid transparent;
+        border-radius: var(--radius);
+        color: white;
+        font-size: 1rem;
+        box-sizing: border-box;
+        transition: all 0.3s ease;
+    }
+
+    input:focus {
+        outline: none;
+        border-color: var(--primary-green);
+        box-shadow: 0 0 8px rgba(46, 204, 113, 0.3);
+    }
+
+    /* --- Visit Limit Styles --- */
+    .toggle-container {
+        display: flex;
+        background: var(--input-bg);
+        border-radius: var(--radius);
+        padding: 4px;
+        margin-bottom: 10px;
+    }
+
+    .toggle-btn {
+        flex: 1;
+        padding: 10px;
+        text-align: center;
+        cursor: pointer;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        transition: 0.3s;
+        color: var(--text-secondary);
+        user-select: none;
+    }
+
+    .toggle-btn.active {
+        background-color: var(--primary-green);
+        color: black;
+        font-weight: bold;
+    }
+
+    #customVisitLimitContainer {
+        display: none;
+        margin-top: 10px;
+        animation: fadeIn 0.3s ease-in-out;
+    }
+
+    /* --- Family Plan Styles --- */
+    .switch-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: var(--input-bg);
+        padding: 15px;
+        border-radius: var(--radius);
+    }
+
+    .switch-label {
+        margin: 0;
+        color: white;
+        cursor: pointer;
+        flex-grow: 1;
+    }
+
+    /* Custom Toggle Switch */
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 50px;
+        height: 24px;
+    }
+    .switch input { opacity: 0; width: 0; height: 0; }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-color: #555;
+        transition: .4s;
+        border-radius: 34px;
+    }
+
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
+
+    /* ВАЖНО: Използваме ~ (тилда) вместо +, за да прескочим скритото поле на Thymeleaf */
+    input:checked ~ .slider {
+        background-color: var(--primary-green);
+    }
+
+    input:checked ~ .slider:before {
+        transform: translateX(26px);
+    }
+
+    #familyMembersContainer {
+        display: none;
+        margin-top: 15px;
+        padding-left: 10px;
+        border-left: 3px solid var(--primary-green); /* Също зелено за консистентност */
+        animation: slideDown 0.3s ease-out;
+    }
+
+    /* Submit Button */
+    .btn-submit {
+        width: 100%;
+        padding: 16px;
+        background: linear-gradient(45deg, var(--primary-green), #27ae60);
+        color: white;
+        border: none;
+        border-radius: var(--radius);
+        font-size: 1.1rem;
+        font-weight: bold;
+        cursor: pointer;
+        margin-top: 20px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: transform 0.2s;
+    }
+
+    .btn-submit:hover {
+        transform: scale(1.02);
+        box-shadow: 0 0 15px rgba(46, 204, 113, 0.4);
+    }
+
+    .error-msg {
+        color: var(--danger);
+        font-size: 0.8rem;
+        margin-top: 5px;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>Нов Абонаментен План</h2>
+
+  <form th:action="@{/admin/membership-plans/add}" th:object="${membershipPlan}" method="post" id="planForm">
+
+    <div class="form-group">
+      <label>Име на плана</label>
+      <input type="text" th:field="*{name}" placeholder="напр. Gold Monthly" />
+      <span class="error-msg" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></span>
+    </div>
+
+    <div class="form-group">
+      <label>Цена (BGN)</label>
+      <input type="number" step="0.01" th:field="*{price}" placeholder="0.00" />
+    </div>
+
+    <div class="form-group">
+      <label>Продължителност (дни)</label>
+      <input type="number" th:field="*{durationDays}" placeholder="30" />
+    </div>
+
+    <div class="form-group">
+      <label>Посещения</label>
+
+      <input type="hidden" th:field="*{visitLimit}" id="realVisitLimitInput">
+
+      <div class="toggle-container">
+        <div class="toggle-btn active" id="btnUnlimited" onclick="setVisitType('unlimited')">Неограничени</div>
+        <div class="toggle-btn" id="btnLimited" onclick="setVisitType('limited')">С лимит</div>
+      </div>
+
+      <div id="customVisitLimitContainer">
+        <input type="number" id="visualLimitInput" placeholder="Брой посещения (напр. 12)" min="1" oninput="syncLimitValue()">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="switch-wrapper">
+        <label class="switch-label" for="family">Семеен план?</label>
+
+        <label class="switch">
+          <input type="checkbox" th:field="*{family}" id="family" onchange="toggleFamilyInput()">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div id="familyMembersContainer">
+        <label>Максимален брой членове</label>
+        <input type="number" th:field="*{maxInFamily}" placeholder="напр. 4" min="2">
+      </div>
+    </div>
+
+    <button type="submit" class="btn-submit">Създай План</button>
+  </form>
+</div>
+
+<script>
+  // --- Логика за Visit Limit ---
+  const realInput = document.getElementById('realVisitLimitInput');
+  const visualInput = document.getElementById('visualLimitInput');
+  const container = document.getElementById('customVisitLimitContainer');
+  const btnUnlimited = document.getElementById('btnUnlimited');
+  const btnLimited = document.getElementById('btnLimited');
+
+  // Тази функция се вика при зареждане на страницата
+  window.onload = function() {
+      // 1. Проверка на visit limit
+      const currentVal = parseInt(realInput.value);
+      if (currentVal === -1 || !currentVal) {
+          setVisitType('unlimited');
+      } else {
+          setVisitType('limited');
+          visualInput.value = currentVal;
+      }
+
+      // 2. Проверка на семейния план (за да се покаже при грешка или edit)
+      toggleFamilyInput();
+  };
+
+  function setVisitType(type) {
+      if (type === 'unlimited') {
+          btnUnlimited.classList.add('active');
+          btnLimited.classList.remove('active');
+          container.style.display = 'none';
+          realInput.value = -1;
+          visualInput.value = "";
+      } else {
+          btnLimited.classList.add('active');
+          btnUnlimited.classList.remove('active');
+          container.style.display = 'block';
+
+          if(visualInput.value) {
+              realInput.value = visualInput.value;
+          } else {
+              realInput.value = 1;
+          }
+          visualInput.focus();
+      }
+  }
+
+  function syncLimitValue() {
+      realInput.value = visualInput.value;
+  }
+
+  // --- Логика за Family Plan ---
+  function toggleFamilyInput() {
+      const checkbox = document.getElementById('family');
+      const familyContainer = document.getElementById('familyMembersContainer');
+      const maxFamilyInput = document.querySelector('input[name="maxInFamily"]');
+
+      if (checkbox && checkbox.checked) {
+          familyContainer.style.display = 'block';
+
+          // Ако полето е празно или 0, слагаме 2 по подразбиране
+          if (!maxFamilyInput.value || maxFamilyInput.value == 0) {
+              maxFamilyInput.value = 2;
+          }
+      } else {
+          familyContainer.style.display = 'none';
+      }
+  }
+</script>
+
+</body>
+</html>

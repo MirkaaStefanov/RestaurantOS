@@ -54,7 +54,7 @@ public class Membership {
             inverseJoinColumns = @JoinColumn(name = "user_id")
     )
     @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"currentMembership", "memberships", "password", "activeDeviceId"})
-    @com.fasterxml.jackson.annotation.JsonIgnore // <--- ДОБАВЕТЕ ТОВА
+//    @com.fasterxml.jackson.annotation.JsonIgnore // <--- ДОБАВЕТЕ ТОВА
     private List<User> users;
 
     private LocalDate startDate;
