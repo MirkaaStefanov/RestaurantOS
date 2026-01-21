@@ -1,14 +1,6 @@
 package com.example.RestaurantOS.models.dto;
 
 import com.example.RestaurantOS.enums.OrderItemStatus;
-import com.example.RestaurantOS.models.entity.MenuItem;
-import com.example.RestaurantOS.models.entity.Order;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
