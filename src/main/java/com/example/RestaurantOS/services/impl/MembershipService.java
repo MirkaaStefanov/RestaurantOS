@@ -159,4 +159,8 @@ public class MembershipService {
         return membershipRepository.save(membership); // Updates the list of users
     }
 
+    public List<Membership> getAllValidMemberships() {
+        return membershipRepository.findByValidTrue();
+    }
+
 }

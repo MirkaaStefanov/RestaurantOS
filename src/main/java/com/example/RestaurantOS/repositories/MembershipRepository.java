@@ -13,4 +13,7 @@ import java.util.UUID;
 @Repository
 public interface MembershipRepository extends JpaRepository<Membership, Long> {
 
+    List<Membership> findByValidTrue();
+
 }
+

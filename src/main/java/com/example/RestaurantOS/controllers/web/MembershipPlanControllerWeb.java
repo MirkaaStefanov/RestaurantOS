@@ -3,6 +3,7 @@ package com.example.RestaurantOS.controllers.web;
 import com.example.RestaurantOS.models.entity.MembershipPlan;
 import com.example.RestaurantOS.models.entity.User;
 import com.example.RestaurantOS.services.impl.MembershipPlanService;
+import com.example.RestaurantOS.services.impl.MembershipService;
 import com.example.RestaurantOS.services.impl.QrService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -16,22 +17,23 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
-@RequestMapping("/admin/membership-plans")
+@RequestMapping("/admin")
 @RequiredArgsConstructor
 public class MembershipPlanControllerWeb {
 
     private final MembershipPlanService membershipPlanService;
     private final QrService qrService;
+    private final MembershipService membershipService;
 
     // --- 1. Покажи формата за добавяне на план ---
-    @GetMapping("/add")
+    @GetMapping("/membership/add")
     public String showAddForm(Model model) {
         model.addAttribute("membershipPlan", new MembershipPlan());
         return "admin/membership-plan-add"; // Thymeleaf template
     }
 
     // --- 2. Обработи POST request за добавяне ---
-    @PostMapping("/add")
+    @PostMapping("/membership/add")
     public String addMembershipPlan(
             @ModelAttribute("membershipPlan") @Valid MembershipPlan membershipPlan,
             BindingResult bindingResult,
@@ -44,7 +46,7 @@ public class MembershipPlanControllerWeb {
 
         membershipPlanService.createPlan(membershipPlan);
         model.addAttribute("successMessage", "Membership plan added successfully!");
-        return "redirect:/admin/membership-plans/list";
+        return "redirect:/admin/membership/add";
     }
 
     // --- 3. Списък с всички планове (опционално) ---
@@ -63,6 +65,15 @@ public class MembershipPlanControllerWeb {
     public String validate(@RequestParam String token){
         User user = qrService.validateQrToken(token);
         return "success";
+    }
+
+    @GetMapping("/valid")
+    public String listValidMemberships(Model model) {
+        // Взимаме списъка от сервиза
+        model.addAttribute("memberships", membershipService.getAllValidMemberships());
+
+        // Връщаме името на HTML файла (без .html)
+        return "admin/membership-valid-list";
     }
 
 }

@@ -160,7 +160,7 @@
         border-radius: 50%;
     }
 
-    /* ВАЖНО: Използваме ~ (тилда) вместо +, за да прескочим скритото поле на Thymeleaf */
+    /* FIX: Използваме ~ вместо + заради скритото поле на Thymeleaf */
     input:checked ~ .slider {
         background-color: var(--primary-green);
     }
@@ -173,7 +173,7 @@
         display: none;
         margin-top: 15px;
         padding-left: 10px;
-        border-left: 3px solid var(--primary-green); /* Също зелено за консистентност */
+        border-left: 3px solid var(--primary-green);
         animation: slideDown 0.3s ease-out;
     }
 
@@ -199,10 +199,22 @@
         box-shadow: 0 0 15px rgba(46, 204, 113, 0.4);
     }
 
+    /* Messages Styles */
+    .success-msg {
+        background-color: rgba(46, 204, 113, 0.2);
+        border: 1px solid var(--primary-green);
+        color: var(--primary-green);
+        padding: 15px;
+        border-radius: var(--radius);
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
     .error-msg {
         color: var(--danger);
         font-size: 0.8rem;
         margin-top: 5px;
+        display: block;
     }
 
     @keyframes fadeIn {
@@ -220,7 +232,11 @@
 <div class="container">
   <h2>Нов Абонаментен План</h2>
 
-  <form th:action="@{/admin/membership-plans/add}" th:object="${membershipPlan}" method="post" id="planForm">
+  <div th:if="${successMessage}" class="success-msg">
+    <span th:text="${successMessage}"></span>
+  </div>
+
+  <form th:action="@{/admin/membership/add}" th:object="${membershipPlan}" method="post" id="planForm">
 
     <div class="form-group">
       <label>Име на плана</label>
@@ -231,11 +247,13 @@
     <div class="form-group">
       <label>Цена (BGN)</label>
       <input type="number" step="0.01" th:field="*{price}" placeholder="0.00" />
+      <span class="error-msg" th:if="${#fields.hasErrors('price')}" th:errors="*{price}"></span>
     </div>
 
     <div class="form-group">
       <label>Продължителност (дни)</label>
       <input type="number" th:field="*{durationDays}" placeholder="30" />
+      <span class="error-msg" th:if="${#fields.hasErrors('durationDays')}" th:errors="*{durationDays}"></span>
     </div>
 
     <div class="form-group">
@@ -251,6 +269,7 @@
       <div id="customVisitLimitContainer">
         <input type="number" id="visualLimitInput" placeholder="Брой посещения (напр. 12)" min="1" oninput="syncLimitValue()">
       </div>
+      <span class="error-msg" th:if="${#fields.hasErrors('visitLimit')}" th:errors="*{visitLimit}"></span>
     </div>
 
     <div class="form-group">
@@ -265,7 +284,8 @@
 
       <div id="familyMembersContainer">
         <label>Максимален брой членове</label>
-        <input type="number" th:field="*{maxInFamily}" placeholder="напр. 4" min="2">
+        <input type="number" th:field="*{maxInFamily}" placeholder="напр. 4">
+        <span class="error-msg" th:if="${#fields.hasErrors('maxInFamily')}" th:errors="*{maxInFamily}"></span>
       </div>
     </div>
 
@@ -281,9 +301,7 @@
   const btnUnlimited = document.getElementById('btnUnlimited');
   const btnLimited = document.getElementById('btnLimited');
 
-  // Тази функция се вика при зареждане на страницата
   window.onload = function() {
-      // 1. Проверка на visit limit
       const currentVal = parseInt(realInput.value);
       if (currentVal === -1 || !currentVal) {
           setVisitType('unlimited');
@@ -292,7 +310,6 @@
           visualInput.value = currentVal;
       }
 
-      // 2. Проверка на семейния план (за да се покаже при грешка или edit)
       toggleFamilyInput();
   };
 
@@ -328,14 +345,19 @@
       const maxFamilyInput = document.querySelector('input[name="maxInFamily"]');
 
       if (checkbox && checkbox.checked) {
+          // Ако е чекнат: Показваме полето
           familyContainer.style.display = 'block';
 
-          // Ако полето е празно или 0, слагаме 2 по подразбиране
-          if (!maxFamilyInput.value || maxFamilyInput.value == 0) {
+          // Ако е празно или 0, слагаме 2 (визуално за user-a)
+          if (!maxFamilyInput.value || parseInt(maxFamilyInput.value) <= 1) {
               maxFamilyInput.value = 2;
           }
       } else {
+          // Ако НЕ е чекнат: Крием полето
           familyContainer.style.display = 'none';
+
+          // ВАЖНО: Слагаме 0, за да се изпрати валидно число към сървъра
+          maxFamilyInput.value = 0;
       }
   }
 </script>
